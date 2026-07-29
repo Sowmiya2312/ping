@@ -1,0 +1,49 @@
+---
+- name: Create ServiceNow Incident
+  hosts: linux
+  gather_facts: no
+
+  vars:
+    snow_instance: "nowlearning-nlinst04469835-7yt6n-0001.lab.service-now.com"
+    snow_username: "admin"
+    snow_password: "5Pz6vcFpjGvd"
+
+  tasks:
+
+    - name: Create ServiceNow Incident
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident"
+        method: POST
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+
+        body_format: json
+
+        body:
+          short_description: "High CPU Utilization on {{ inventory_hostname }}"
+          description: |
+            CPU Utilization exceeded threshold.
+
+            Server: {{ inventory_hostname }}
+
+            Incident generated automatically by Ansible.
+          impact: "2"
+          urgency: "2"
+          category: "inquiry"
+          subcategory: "performance"
+
+        status_code:
+          - 200
+          - 201
+
+      register: incident
+
+    - name: Show Incident Number
+      debug:
+        msg: "Incident Created: {{ incident.json.result.number }}"

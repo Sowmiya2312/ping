@@ -1,0 +1,78 @@
+---
+- name: Fetch Latest ServiceNow Incident and Update to In Progress
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    snow_instance: "nowlearning-nlinst04469835-7yt6n-0001.lab.service-now.com"
+    snow_username: "admin"
+    snow_password: "5Pz6vcFpjGvd"
+
+  tasks:
+
+    - name: Get Latest CPU Utilization Incident
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident?sysparm_query=short_descriptionLIKECPU%20Utilization^ORDERBYDESCsys_created_on&sysparm_limit=1"
+        method: GET
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Accept: "application/json"
+        status_code: 200
+      register: incident_info
+
+    - name: Verify Incident Exists
+      fail:
+        msg: "No CPU Utilization incident found."
+      when: incident_info.json.result | length == 0
+
+    - name: Extract Incident Details
+      set_fact:
+        incident_sys_id: "{{ incident_info.json.result[0].sys_id }}"
+        incident_number: "{{ incident_info.json.result[0].number }}"
+        incident_short_description: "{{ incident_info.json.result[0].short_description }}"
+
+    - name: Update Incident to In Progress
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          state: "2"
+          work_notes: "Investigation started by Ansible Automation Platform."
+        status_code: 200
+      register: update_result
+
+    - name: Save Incident Details for Next Workflow
+      copy:
+        dest: /tmp/incident_details.json
+        content: |
+          {
+            "sys_id": "{{ incident_sys_id }}",
+            "number": "{{ incident_number }}",
+            "short_description": "{{ incident_short_description }}"
+          }
+
+    - name: Display Updated Incident Details
+      debug:
+        msg:
+          - "Incident Updated Successfully"
+          - "Incident Number : {{ incident_number }}"
+          - "Incident Sys ID : {{ incident_sys_id }}"
+          - "Short Description : {{ incident_short_description }}"
+          - "State Updated To : In Progress"
+
+    - name: Pass incident details to next workflow node
+      set_stats:
+        data:
+          incident_sys_id: "{{ incident_sys_id }}"
+          incident_number: "{{ incident_number }}"

@@ -1,0 +1,143 @@
+---
+- name: Check CPU Utilization and Close ServiceNow Incident
+  hosts: linux
+  become: yes
+  gather_facts: no
+
+  vars:
+    snow_instance: "nowlearning-nlinst04469835-7yt6n-0001.lab.service-now.com"
+    snow_username: "admin"
+    snow_password: "5Pz6vcFpjGvd"
+
+    cpu_threshold: 80
+
+  tasks:
+
+    - name: Display Incident Details Received from Workflow
+      debug:
+        msg:
+          - "Incident Number: {{ incident_number }}"
+          - "Incident Sys ID: {{ incident_sys_id }}"
+
+    - name: Get CPU Utilization
+      shell: |
+        top -bn1 | awk '/Cpu/ {print 100-$8}'
+      register: cpu_usage
+      changed_when: false
+
+    - name: Get Top 5 CPU Processes
+      shell: |
+        ps -eo pid,user,comm,%cpu --sort=-%cpu | head -6
+      register: top_processes
+      changed_when: false
+
+    - name: Set CPU Facts
+      set_fact:
+        current_cpu: "{{ cpu_usage.stdout | float }}"
+
+    - name: Update Incident with CPU Analysis
+      delegate_to: localhost
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          work_notes: |
+            CPU Analysis Completed
+
+            Incident Number: {{ incident_number }}
+
+            Server: {{ inventory_hostname }}
+
+            CPU Usage: {{ current_cpu }} %
+
+            Threshold: {{ cpu_threshold }} %
+
+            Top 5 CPU Processes:
+
+            {{ top_processes.stdout }}
+        status_code: 200
+
+    - name: Resolve Incident - CPU Above Threshold
+      delegate_to: localhost
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          state: "6"
+          close_code: "Solved (Permanently)"
+          close_notes: |
+            Incident resolved automatically by AAP.
+
+            Incident Number: {{ incident_number }}
+
+            Server: {{ inventory_hostname }}
+
+            CPU Usage: {{ current_cpu }} %
+
+            CPU utilization exceeded threshold.
+
+            Top CPU-consuming processes:
+
+            {{ top_processes.stdout }}
+        status_code: 200
+      when: current_cpu > cpu_threshold
+
+    - name: Resolve Incident - CPU Within Threshold
+      delegate_to: localhost
+      uri:
+        url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          state: "6"
+          close_code: "Solved (Permanently)"
+          close_notes: |
+            Incident resolved automatically by AAP.
+
+            Incident Number: {{ incident_number }}
+
+            Server: {{ inventory_hostname }}
+
+            CPU Usage: {{ current_cpu }} %
+
+            CPU utilization is within threshold ({{ cpu_threshold }}%).
+        status_code: 200
+      when: current_cpu <= cpu_threshold
+
+    - name: Pass Results to Next Workflow Node
+      set_stats:
+        data:
+          closed_incident: "{{ incident_number }}"
+          incident_sys_id: "{{ incident_sys_id }}"
+          final_cpu_usage: "{{ current_cpu }}"
+          server_name: "{{ inventory_hostname }}"
+
+    - name: Final Status
+      debug:
+        msg:
+          - "Incident Closed Successfully"
+          - "Incident Number: {{ incident_number }}"
+          - "CPU Usage: {{ current_cpu }}%"
