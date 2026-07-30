@@ -10,29 +10,10 @@
 
   tasks:
 
-    - name: Get Latest CPU Utilization Incident
-      uri:
-        url: "https://{{ snow_instance }}/api/now/table/incident?sysparm_query=short_descriptionLIKECPU%20Utilization^ORDERBYDESCsys_created_on&sysparm_limit=1"
-        method: GET
-        user: "{{ snow_username }}"
-        password: "{{ snow_password }}"
-        force_basic_auth: yes
-        validate_certs: no
-        headers:
-          Accept: "application/json"
-        status_code: 200
-      register: incident_info
-
     - name: Verify Incident Exists
       fail:
         msg: "No CPU Utilization incident found."
       when: incident_info.json.result | length == 0
-
-    - name: Extract Incident Details
-      set_fact:
-        incident_sys_id: "{{ incident_info.json.result[0].sys_id }}"
-        incident_number: "{{ incident_info.json.result[0].number }}"
-        incident_short_description: "{{ incident_info.json.result[0].short_description }}"
 
     - name: Update Incident to In Progress
       uri:
