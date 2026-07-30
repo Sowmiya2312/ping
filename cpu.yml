@@ -64,7 +64,7 @@
             {{ top_processes.stdout }}
         status_code: 200
 
-    - name: Resolve Incident - CPU Above Threshold
+    - name: Close Incident - CPU Above Threshold
       delegate_to: localhost
       uri:
         url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
@@ -78,11 +78,11 @@
           Accept: "application/json"
         body_format: json
         body:
-          state: "6"
+          state: "7"
           resolution_code: "Solved"
           close_code: "Solved (Permanently)"
           close_notes: |
-            Incident resolved automatically by AAP.
+            Incident closed automatically by AAP.
 
             Incident Number: {{ incident_number }}
 
@@ -98,7 +98,7 @@
         status_code: 200
       when: (current_cpu | int) > cpu_threshold
 
-    - name: Resolve Incident - CPU Within Threshold
+    - name: Close Incident - CPU Within Threshold
       delegate_to: localhost
       uri:
         url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
@@ -112,11 +112,11 @@
           Accept: "application/json"
         body_format: json
         body:
-          state: "6"
-          resolution_code: "solved"
+          state: "7"
+          resolution_code: "Solved"
           close_code: "Solved (Permanently)"
           close_notes: |
-            Incident resolved automatically by AAP.
+            Incident closed automatically by AAP.
 
             Incident Number: {{ incident_number }}
 
