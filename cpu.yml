@@ -95,7 +95,7 @@
 
             {{ top_processes.stdout }}
         status_code: 200
-      when: current_cpu > cpu_threshold
+      when: (current_cpu | int) > cpu_threshold
 
     - name: Resolve Incident - CPU Within Threshold
       delegate_to: localhost
@@ -124,7 +124,7 @@
 
             CPU utilization is within threshold ({{ cpu_threshold }}%).
         status_code: 200
-      when: current_cpu <= cpu_threshold
+      when: (current_cpu | int) <= cpu_threshold
 
     - name: Final Status
       debug:
