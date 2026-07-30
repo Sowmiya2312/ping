@@ -9,12 +9,7 @@
     snow_password: "5Pz6vcFpjGvd"
 
   tasks:
-
-    - name: Verify Incident Exists
-      fail:
-        msg: "No CPU Utilization incident found."
-      when: incident_info.json.result | length == 0
-
+  
     - name: Update Incident to In Progress
       uri:
         url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
