@@ -34,8 +34,7 @@
         content: |
           {
             "sys_id": "{{ incident_sys_id }}",
-            "number": "{{ incident_number }}",
-            "short_description": "{{ incident_short_description }}"
+            "number": "{{ incident_number }}"
           }
 
     - name: Display Updated Incident Details
@@ -44,7 +43,6 @@
           - "Incident Updated Successfully"
           - "Incident Number : {{ incident_number }}"
           - "Incident Sys ID : {{ incident_sys_id }}"
-          - "Short Description : {{ incident_short_description }}"
           - "State Updated To : In Progress"
 
     - name: Pass incident details to next workflow node
