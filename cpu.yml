@@ -77,7 +77,7 @@
           Accept: "application/json"
         body_format: json
         body:
-          state: "7"
+          state: "closed"
           resolution_code: "Solution provided"
           resolution_notes: "closed through ansible"
           close_notes: |
@@ -111,7 +111,7 @@
           Accept: "application/json"
         body_format: json
         body:
-          state: "7"
+          state: "closed"
           resolution_code: "Solved"
           resolution_notes: "Solved (Permanently)"
           close_notes: |
