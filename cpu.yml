@@ -65,7 +65,6 @@
         status_code: 200
 
     - name: Close Incident - CPU Above Threshold
-      delegate_to: localhost
       uri:
         url: "https://{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
         method: PATCH
@@ -79,8 +78,8 @@
         body_format: json
         body:
           state: "7"
-          resolution_code: "Solved"
-          close_code: "Solved (Permanently)"
+          resolution_code: "Solution provided"
+          resolution_notes: "closed through ansible"
           close_notes: |
             Incident closed automatically by AAP.
 
@@ -114,7 +113,7 @@
         body:
           state: "7"
           resolution_code: "Solved"
-          close_code: "Solved (Permanently)"
+          resolution_notes: "Solved (Permanently)"
           close_notes: |
             Incident closed automatically by AAP.
 
