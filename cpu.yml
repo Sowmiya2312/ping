@@ -126,14 +126,6 @@
         status_code: 200
       when: current_cpu <= cpu_threshold
 
-    - name: Pass Results to Next Workflow Node
-      set_stats:
-        data:
-          closed_incident: "{{ incident_number }}"
-          incident_sys_id: "{{ incident_sys_id }}"
-          final_cpu_usage: "{{ current_cpu }}"
-          server_name: "{{ inventory_hostname }}"
-
     - name: Final Status
       debug:
         msg:
