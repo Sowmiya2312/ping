@@ -4,9 +4,9 @@
   gather_facts: no
 
   vars:
-    snow_instance: "nowlearning-nlinst04469835-7yt6n-0001.lab.service-now.com"
+    snow_instance: "nowlearning-nlinst04482238-7y7gv-0001.lab.service-now.com"
     snow_username: "admin"
-    snow_password: "5Pz6vcFpjGvd"
+    snow_password: "4J5eGjXBpx8Z"
 
   tasks:
   
