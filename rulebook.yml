@@ -1,0 +1,16 @@
+---
+- name: Demo Rulebook
+  hosts: localhost
+
+  sources:
+    - ansible.eda.webhook:
+        host: 0.0.0.0
+        port: 5000
+
+  rules:
+    - name: Run Job Template
+      condition: event.payload.message == "hello"
+      action:
+        run_job_template:
+          name: <Your Job Template Name>
+          organization: Default
